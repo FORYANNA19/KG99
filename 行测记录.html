@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行测成绩记录</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: #f5f6f8;
+  color: #2c3e50;
+  min-height: 100vh;
+}
+.container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+h1 { font-size: 22px; font-weight: 600; margin-bottom: 20px; }
+
+.tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+.tab-btn {
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: #718096;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color .2s, border-color .2s;
+  touch-action: manipulation;
+  min-height: 44px;
+}
+.tab-btn.active { color: #3b82f6; border-bottom-color: #3b82f6; font-weight: 500; }
+.tab-btn:hover { color: #3b82f6; }
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.section-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+}
+.section-row:last-child { border-bottom: none; }
+.section-name {
+  width: 80px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #4a5568;
+  flex-shrink: 0;
+}
+.section-info {
+  font-size: 12px;
+  color: #a0aec0;
+  width: 120px;
+  flex-shrink: 0;
+}
+.section-input {
+  width: 72px;
+  padding: 10px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 16px;
+  outline: none;
+  transition: border-color .2s;
+  min-height: 44px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.section-input:focus { border-color: #3b82f6; }
+.section-input.error { border-color: #ef4444; background: #fef2f2; }
+.section-result {
+  font-size: 13px;
+  color: #718096;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+.section-result .correct { color: #38a169; font-weight: 500; }
+.section-result .score { color: #3b82f6; margin-left: 8px; }
+
+.summary {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding-top: 12px;
+  margin-top: 8px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 15px;
+}
+.summary-item { color: #718096; }
+.summary-item span { font-weight: 600; color: #2c3e50; }
+.summary-item .highlight { color: #3b82f6; font-size: 18px; }
+
+.btn-row { display: flex; gap: 12px; margin-top: 16px; }
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .2s, opacity .2s;
+  touch-action: manipulation;
+  min-height: 44px;
+}
+.btn-primary { background: #3b82f6; color: #fff; }
+.btn-primary:hover { background: #2563eb; }
+.btn-primary:disabled { background: #a0c4ff; cursor: not-allowed; }
+.btn-danger { background: none; color: #ef4444; border: 1px solid #ef4444; }
+.btn-danger:hover { background: #fef2f2; }
+.btn-sm { padding: 6px 10px; font-size: 12px; min-height: auto; }
+
+.records-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+.records-table-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 24px; height: 100%;
+  background: linear-gradient(to right, transparent, rgba(0,0,0,.06));
+  pointer-events: none;
+  display: none;
+}
+.records-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.records-table th, .records-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: center;
+}
+.records-table th {
+  background: #f8fafc;
+  color: #4a5568;
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+}
+.records-table tbody tr:hover { background: #f8fafc; }
+.record-date { color: #3b82f6; font-weight: 500; }
+.rate-good { color: #38a169; }
+.rate-mid { color: #d69e2e; }
+.rate-low { color: #ef4444; }
+
+.section-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 16px; }
+.stat-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px 16px;
+}
+.stat-card h4 { font-size: 13px; color: #4a5568; margin-bottom: 8px; }
+.stat-list { list-style: none; font-size: 12px; color: #718096; }
+.stat-list li { padding: 2px 0; display: flex; justify-content: space-between; }
+.stat-avg { margin-top: 6px; padding-top: 6px; border-top: 1px solid #e2e8f0; font-weight: 500; color: #2c3e50; }
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #a0aec0;
+  font-size: 14px;
+}
+
+.hint { font-size: 12px; color: #a0aec0; margin-top: 8px; }
+
+/* ========== 平板 (≤768px) ========== */
+@media (max-width: 768px) {
+  .container { padding: 16px 12px; }
+  h1 { font-size: 20px; margin-bottom: 16px; }
+  .card { padding: 16px; }
+  .tabs { border-bottom-width: 2px; }
+  .tab-btn { flex: 1; text-align: center; padding: 12px 8px; font-size: 14px; }
+  .section-info { width: 110px; font-size: 11px; }
+  .section-input { width: 80px; font-size: 16px; }
+  .section-result { font-size: 12px; }
+  .summary { font-size: 14px; gap: 16px; }
+  .summary-item .highlight { font-size: 17px; }
+  .records-table-wrapper::after { display: block; }
+  .records-table th, .records-table td { padding: 8px 10px; font-size: 12px; }
+  .section-stats { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+  .stat-card { padding: 10px 12px; }
+}
+
+/* ========== 手机 (≤480px) ========== */
+@media (max-width: 480px) {
+  .container { padding: 12px 8px; }
+  h1 { font-size: 18px; margin-bottom: 12px; }
+  .card { padding: 12px; border-radius: 6px; }
+  .tabs { margin-bottom: 12px; }
+  .tab-btn { padding: 10px 4px; font-size: 13px; }
+
+  .section-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 10px 0;
+  }
+  .section-name {
+    width: 100%;
+    font-size: 15px;
+    padding-bottom: 2px;
+  }
+  .section-info {
+    width: 100%;
+    font-size: 12px;
+    padding-bottom: 4px;
+  }
+  .section-input {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px 8px;
+  }
+  .section-result {
+    width: 100%;
+    font-size: 13px;
+    min-width: auto;
+    margin-top: 2px;
+  }
+
+  .summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 15px;
+  }
+  .summary-item .highlight { font-size: 18px; }
+
+  .btn-row { flex-direction: column; }
+  .btn { width: 100%; text-align: center; justify-content: center; }
+
+  .records-table th, .records-table td { padding: 8px 8px; font-size: 12px; }
+
+  .section-stats { grid-template-columns: 1fr; }
+  .stat-card { padding: 12px; }
+}</style>
+</head>
+<body>
+<div class="container">
+  <h1>行测成绩记录</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('input')">录入记录</button>
+    <button class="tab-btn" onclick="switchTab('history')">往年记录</button>
+  </div>
+
+  <!-- ========== 录入记录 Tab ========== -->
+  <div id="tab-input">
+    <div id="sections-container"></div>
+    <div class="summary">
+      <div class="summary-item">总分: <span class="highlight" id="sum-score">--</span></div>
+      <div class="summary-item">总正确率: <span id="sum-rate">--</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-save" onclick="saveRecord()">保存记录</button>
+      <button class="btn btn-danger" onclick="clearInput()">清空</button>
+    </div>
+    <div class="hint">留空表示该板块未做；输入0表示全对。保存后数据存储在浏览器本地。</div>
+  </div>
+
+  <!-- ========== 往年记录 Tab ========== -->
+  <div id="tab-history" style="display:none;">
+    <div id="history-empty" class="empty-state">暂无记录</div>
+    <div id="history-content" style="display:none;">
+      <div class="card">
+        <h3 style="font-size:15px;margin-bottom:12px;color:#2c3e50;">历次记录</h3>
+        <div class="records-table-wrapper">
+          <table class="records-table">
+            <thead id="table-head"></thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:15px;margin-bottom:12px;color:#2c3e50;">各板块正确率汇总</h3>
+        <div class="section-stats" id="section-stats-container"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'xingce_records';
+
+const sections = [
+  { name: '政治理论', total: 20, scorePer: 0.8, full: 16 },
+  { name: '常识判断', total: 15, scorePer: 0.6, full: 9 },
+  { name: '言语理解', total: 30, scorePer: 0.8, full: 24 },
+  { name: '数量关系', total: 10, scorePer: 0.7, full: 7 },
+  { name: '图形推理', total: 10, scorePer: 0.8, full: 8 },
+  { name: '判断推理', total: 25, scorePer: 0.8, full: 20 },
+  { name: '资料分析', total: 20, scorePer: 0.8, full: 16 }
+];
+
+function getRecords() {
+  try {
+    var data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data).records : [];
+  } catch (e) { return []; }
+}
+
+function saveRecords(records) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ records: records }));
+}
+
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+// ========== 初始化录入表单 ==========
+function buildInputForm() {
+  var container = document.getElementById('sections-container');
+  var html = '';
+  sections.forEach(function(sec, i) {
+    html += '<div class="section-row">';
+    html += '  <div class="section-name">' + sec.name + '</div>';
+    html += '  <div class="section-info">总题' + sec.total + ' / ' + sec.scorePer + '分/题</div>';
+    html += '  <input type="number" class="section-input" id="wrong-' + i + '"';
+    html += '    inputmode="numeric" pattern="[0-9]*" min="0" max="' + sec.total + '" placeholder="错题数"';
+    html += '    oninput="onInputChange(' + i + ')" onkeydown="if(event.key===\'Enter\'){onInputChange(' + i + ')}">';
+    html += '  <div class="section-result" id="result-' + i + '"></div>';
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+// ========== 输入变化 ==========
+function onInputChange(i) {
+  var input = document.getElementById('wrong-' + i);
+  var rawVal = input.value.trim();
+  var sec = sections[i];
+
+  input.classList.remove('error');
+
+  if (rawVal === '') {
+    document.getElementById('result-' + i).innerHTML = '<span style="color:#a0aec0;">--</span>';
+  } else {
+    var wrong = parseInt(rawVal, 10);
+    if (isNaN(wrong) || wrong < 0 || wrong > sec.total) {
+      input.classList.add('error');
+      document.getElementById('result-' + i).innerHTML =
+        '<span style="color:#ef4444;">错题需在0~' + sec.total + '之间</span>';
+    } else {
+      var correct = sec.total - wrong;
+      var score = (correct * sec.scorePer).toFixed(1);
+      var rate = (correct / sec.total * 100).toFixed(1);
+      document.getElementById('result-' + i).innerHTML =
+        '正确:<span class="correct">' + correct + '</span>' +
+        ' / 正确率:<span class="correct">' + rate + '%</span>' +
+        ' / 得分:<span class="score">' + score + '</span>';
+    }
+  }
+  updateSummary();
+}
+
+// ========== 汇总 ==========
+function updateSummary() {
+  var totalCorrect = 0;
+  var totalQuestions = 0;
+  var totalScore = 0;
+  var hasError = false;
+
+  sections.forEach(function(sec, i) {
+    var input = document.getElementById('wrong-' + i);
+    var rawVal = input.value.trim();
+    if (rawVal === '') return; // 未做，跳过
+    var wrong = parseInt(rawVal, 10);
+    if (isNaN(wrong) || wrong < 0 || wrong > sec.total) {
+      hasError = true;
+      return;
+    }
+    totalCorrect += (sec.total - wrong);
+    totalQuestions += sec.total;
+    totalScore += (sec.total - wrong) * sec.scorePer;
+  });
+
+  var sumScoreEl = document.getElementById('sum-score');
+  var sumRateEl = document.getElementById('sum-rate');
+  var btnSave = document.getElementById('btn-save');
+
+  if (totalQuestions === 0) {
+    sumScoreEl.textContent = '--';
+    sumRateEl.textContent = '--';
+    btnSave.disabled = true;
+  } else {
+    sumScoreEl.textContent = totalScore.toFixed(1);
+    var rate = (totalCorrect / totalQuestions * 100).toFixed(1);
+    sumRateEl.textContent = rate + '%';
+    btnSave.disabled = hasError;
+  }
+}
+
+// ========== 保存记录 ==========
+function saveRecord() {
+  var wrongs = [];
+  var hasAny = false;
+
+  sections.forEach(function(sec, i) {
+    var input = document.getElementById('wrong-' + i);
+    var rawVal = input.value.trim();
+    if (rawVal === '') {
+      wrongs.push(null);
+    } else {
+      var wrong = parseInt(rawVal, 10);
+      if (isNaN(wrong) || wrong < 0 || wrong > sec.total) {
+        document.getElementById('wrong-' + i).classList.add('error');
+        return;
+      }
+      wrongs.push(wrong);
+      hasAny = true;
+    }
+  });
+
+  if (!hasAny) {
+    alert('请至少填写一个板块的错题数。');
+    return;
+  }
+
+  var records = getRecords();
+  var today = new Date();
+  var dateStr = today.getFullYear() + '-' +
+    ('0' + (today.getMonth() + 1)).slice(-2) + '-' +
+    ('0' + today.getDate()).slice(-2);
+
+  records.unshift({
+    id: genId(),
+    date: dateStr,
+    timestamp: today.getTime(),
+    wrongs: wrongs
+  });
+
+  saveRecords(records);
+  clearInput();
+  switchTab('history');
+  renderHistory();
+}
+
+// ========== 清空输入 ==========
+function clearInput() {
+  sections.forEach(function(_, i) {
+    var input = document.getElementById('wrong-' + i);
+    input.value = '';
+    input.classList.remove('error');
+    document.getElementById('result-' + i).innerHTML = '';
+  });
+  updateSummary();
+}
+
+// ========== 切换 Tab ==========
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
+  if (tab === 'input') {
+    document.querySelectorAll('.tab-btn')[0].classList.add('active');
+    document.getElementById('tab-input').style.display = 'block';
+    document.getElementById('tab-history').style.display = 'none';
+  } else {
+    document.querySelectorAll('.tab-btn')[1].classList.add('active');
+    document.getElementById('tab-input').style.display = 'none';
+    document.getElementById('tab-history').style.display = 'block';
+    renderHistory();
+  }
+}
+
+// ========== 渲染历史记录 ==========
+function renderHistory() {
+  var records = getRecords();
+  var historyEmpty = document.getElementById('history-empty');
+  var historyContent = document.getElementById('history-content');
+
+  if (records.length === 0) {
+    historyEmpty.style.display = 'block';
+    historyContent.style.display = 'none';
+    return;
+  }
+
+  historyEmpty.style.display = 'none';
+  historyContent.style.display = 'block';
+
+  // 表头
+  var headHtml = '<tr><th>序号</th><th>日期</th><th>总分</th><th>总正确率</th>';
+  sections.forEach(function(sec) { headHtml += '<th>' + sec.name + '</th>'; });
+  headHtml += '<th>操作</th></tr>';
+  document.getElementById('table-head').innerHTML = headHtml;
+
+  // 表体
+  var bodyHtml = '';
+  records.forEach(function(rec, idx) {
+    var validTotal = 0, validCorrect = 0, validScore = 0;
+    sections.forEach(function(sec, i) {
+      if (rec.wrongs[i] !== null) {
+        var c = sec.total - rec.wrongs[i];
+        validTotal += sec.total;
+        validCorrect += c;
+        validScore += c * sec.scorePer;
+      }
+    });
+
+    var totalRate = validTotal > 0 ? (validCorrect / validTotal * 100).toFixed(1) + '%' : '--';
+    var totalScore = validTotal > 0 ? validScore.toFixed(1) : '--';
+
+    bodyHtml += '<tr>';
+    bodyHtml += '<td>' + (idx + 1) + '</td>';
+    bodyHtml += '<td class="record-date">' + rec.date + '</td>';
+    bodyHtml += '<td>' + totalScore + '</td>';
+    bodyHtml += '<td>' + rateClass(totalRate) + '</td>';
+
+    sections.forEach(function(sec, i) {
+      if (rec.wrongs[i] === null) {
+        bodyHtml += '<td style="color:#a0aec0;">--</td>';
+      } else {
+        var cr = (sec.total - rec.wrongs[i]);
+        var crRate = (cr / sec.total * 100).toFixed(1) + '%';
+        bodyHtml += '<td>' + rateClass(crRate) + '</td>';
+      }
+    });
+
+    bodyHtml += '<td><button class="btn btn-danger btn-sm" onclick="deleteRecord(\'' + rec.id + '\')">删除</button></td>';
+    bodyHtml += '</tr>';
+  });
+  document.getElementById('table-body').innerHTML = bodyHtml;
+
+  // 各板块正确率汇总
+  renderSectionStats(records);
+}
+
+function rateClass(rateStr) {
+  if (rateStr === '--') return '--';
+  var val = parseFloat(rateStr);
+  if (val >= 80) return '<span class="rate-good">' + rateStr + '</span>';
+  if (val >= 60) return '<span class="rate-mid">' + rateStr + '</span>';
+  return '<span class="rate-low">' + rateStr + '</span>';
+}
+
+function renderSectionStats(records) {
+  var container = document.getElementById('section-stats-container');
+  var html = '';
+
+  sections.forEach(function(sec, si) {
+    html += '<div class="stat-card">';
+    html += '<h4>' + sec.name + '</h4>';
+    html += '<ul class="stat-list">';
+
+    var rates = [];
+    records.forEach(function(rec) {
+      if (rec.wrongs[si] !== null) {
+        var correct = sec.total - rec.wrongs[si];
+        var rate = (correct / sec.total * 100).toFixed(1);
+        rates.push({ date: rec.date, rate: parseFloat(rate) });
+        html += '<li><span>' + rec.date + '</span><span>' + rateClass(rate + '%') + '</span></li>';
+      } else {
+        html += '<li><span>' + rec.date + '</span><span style="color:#a0aec0;">未做</span></li>';
+      }
+    });
+
+    if (rates.length > 0) {
+      var avg = (rates.reduce(function(s, r) { return s + r.rate; }, 0) / rates.length).toFixed(1);
+      html += '<li class="stat-avg"><span>平均</span><span>' + rateClass(avg + '%') + '</span></li>';
+    } else {
+      html += '<li class="stat-avg"><span>平均</span><span style="color:#a0aec0;">--</span></li>';
+    }
+
+    html += '</ul></div>';
+  });
+
+  container.innerHTML = html;
+}
+
+// ========== 删除记录 ==========
+function deleteRecord(id) {
+  if (!confirm('确定要删除这条记录吗？')) return;
+  var records = getRecords();
+  records = records.filter(function(r) { return r.id !== id; });
+  saveRecords(records);
+  renderHistory();
+}
+
+// ========== 初始化 ==========
+buildInputForm();
+updateSummary();
+</script>
+</body>
+</html>

@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>成语记录</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #EEF1F5;
+  --card-bg: #FFFFFF;
+  --nav-bg: #C7D5E8;
+  --primary: #A8BEDF;
+  --primary-hover: #8BAED4;
+  --border: #D8E0EB;
+  --text: #3D4F5F;
+  --text-light: #7B8D9E;
+  --word-color: #4A6B8A;
+  --danger: #C4908A;
+  --danger-hover: #B07A74;
+  --radius: 10px;
+  --shadow: 0 1px 4px rgba(61, 79, 95, 0.08);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  touch-action: manipulation;
+}
+
+/* ========== Header ========== */
+header {
+  background: var(--nav-bg);
+  padding: 14px 16px;
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+header h1 {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+.header-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--text-light);
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-width: 44px;
+  min-height: 44px;
+}
+.icon-btn:active { background: rgba(61, 79, 95, 0.08); color: var(--text); }
+.icon-btn svg { pointer-events: none; }
+
+/* ========== Search Bar ========== */
+.search-bar {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+  background: #fff;
+}
+.search-bar.active {
+  max-height: 60px;
+  margin: 0;
+}
+.search-bar-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+}
+.search-bar-inner input {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-bar-inner input:focus { border-color: var(--primary); }
+.search-bar-inner input::placeholder { color: var(--text-light); }
+
+/* ========== Main ========== */
+main {
+  flex: 1;
+  padding: 16px;
+  padding-bottom: 0;
+  overflow-y: auto;
+}
+
+/* ========== Add Section ========== */
+.add-section { margin-bottom: 14px; }
+.add-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.add-row input {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--card-bg);
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.add-row input:focus { border-color: var(--primary); }
+.add-row input::placeholder { color: var(--text-light); }
+.add-row input.shake {
+  animation: shake 0.4s ease;
+  border-color: var(--danger);
+}
+.add-row button {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-appearance: none;
+  min-height: 44px;
+}
+.add-row button:active { background: var(--primary-hover); }
+.format-hint {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 6px;
+  margin-left: 2px;
+}
+
+/* ========== List ========== */
+.list-section { padding-bottom: 16px; }
+
+/* ========== Card ========== */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s;
+}
+.card:active { box-shadow: 0 2px 8px rgba(61, 79, 95, 0.1); }
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.card-word {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--word-color);
+  flex: 1;
+  word-break: break-all;
+}
+.card-actions-top {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.card-actions-top .icon-btn { width: 32px; height: 32px; min-width: 36px; min-height: 36px; }
+.card-meaning {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 10px;
+  word-break: break-all;
+}
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.card-footer button {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text-light);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  -webkit-appearance: none;
+  min-height: 36px;
+}
+.card-footer button:active { background: var(--bg); }
+.card-footer .btn-delete:active {
+  background: #fdf2f0;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* edit mode */
+.card.editing .card-word { display: none; }
+.card.editing .card-edit-word { display: block; }
+.card.editing .card-meaning { display: none; }
+.card.editing .card-edit-meaning { display: block; }
+
+.card:not(.editing) .card-edit-word { display: none; }
+.card:not(.editing) .card-edit-meaning { display: none; }
+
+.card-edit-word {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+  margin-bottom: 8px;
+  -webkit-appearance: none;
+}
+.card-edit-word:focus { border-color: var(--primary); }
+.card-edit-meaning {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+  font-family: inherit;
+  -webkit-appearance: none;
+}
+.card-edit-meaning:focus { border-color: var(--primary); }
+.card-footer .btn-save {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.card-footer .btn-save:active { background: var(--primary-hover); }
+
+/* ========== Empty State ========== */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-light);
+}
+.empty-state p:first-of-type {
+  font-size: 15px;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.empty-state p:last-of-type { font-size: 13px; }
+
+/* ========== No Result ========== */
+.no-result {
+  text-align: center;
+  padding: 36px 24px;
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+/* ========== Footer ========== */
+footer {
+  text-align: center;
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  font-size: 12px;
+  color: var(--text-light);
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+/* ========== Overlay ========== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  visibility: hidden;
+}
+.overlay.active {
+  pointer-events: auto;
+  visibility: visible;
+}
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.overlay.active .backdrop { opacity: 1; }
+
+.bottom-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  background: var(--card-bg);
+  border-radius: 16px 16px 0 0;
+  padding: 18px 20px;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(100%);
+  transition: transform 0.35s ease;
+}
+.overlay.active .bottom-sheet { transform: translateY(0); }
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.sheet-header h2 { font-size: 17px; font-weight: 600; }
+.sheet-section { margin-bottom: 20px; }
+.sheet-section h3 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.sort-options { display: flex; flex-direction: column; gap: 2px; }
+.sort-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 15px;
+  min-height: 48px;
+}
+.sort-option:active { background: var(--bg); }
+.sort-option input[type="radio"] {
+  accent-color: var(--primary);
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+.sort-option input[type="radio"]:checked + span { color: var(--word-color); font-weight: 500; }
+
+.io-buttons {
+  display: flex;
+  gap: 10px;
+}
+.io-buttons button {
+  flex: 1;
+  padding: 12px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-appearance: none;
+  min-height: 44px;
+}
+.io-buttons button:active { background: var(--bg); }
+.export-hint {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* ========== Toast ========== */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 20px;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 300;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ========== Animations ========== */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* ========== Scrollbar ========== */
+::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <h1>成语记录</h1>
+  <div class="header-actions">
+    <button class="icon-btn" id="searchBtn" aria-label="搜索">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+    <button class="icon-btn" id="settingsBtn" aria-label="设置">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- Search Bar -->
+<div class="search-bar" id="searchBar">
+  <div class="search-bar-inner">
+    <input type="text" id="searchInput" placeholder="搜索成语..." autocomplete="off">
+    <button class="icon-btn" id="closeSearchBtn" aria-label="关闭搜索">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Main Content -->
+<main>
+  <!-- Add Section -->
+  <section class="add-section">
+    <div class="add-row">
+      <input type="text" id="inputBox" placeholder="输入成语和意思，用空格分隔..." autocomplete="off">
+      <button id="addBtn">添加词条</button>
+    </div>
+    <p class="format-hint">格式：成语 意思</p>
+  </section>
+
+  <!-- List Section -->
+  <section class="list-section" id="listSection"></section>
+</main>
+
+<!-- Footer -->
+<footer><span id="countText">共 0 个词条</span></footer>
+
+<!-- Settings Overlay -->
+<div class="overlay" id="settingsOverlay">
+  <div class="backdrop" id="backdrop"></div>
+  <div class="bottom-sheet">
+    <div class="sheet-header">
+      <h2>设置</h2>
+      <button class="icon-btn" id="closeSettingsBtn" aria-label="关闭">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-section">
+      <h3>排序方式</h3>
+      <div class="sort-options" id="sortOptions">
+        <label class="sort-option">
+          <input type="radio" name="sort" value="time">
+          <span>按添加时间</span>
+        </label>
+        <label class="sort-option">
+          <input type="radio" name="sort" value="letter">
+          <span>按首字母</span>
+        </label>
+        <label class="sort-option">
+          <input type="radio" name="sort" value="random">
+          <span>随机顺序</span>
+        </label>
+      </div>
+    </div>
+    <div class="sheet-section">
+      <h3>数据管理</h3>
+      <div class="io-buttons">
+        <button id="exportBtn">导出备份</button>
+        <button id="importBtn">导入恢复</button>
+      </div>
+      <p class="export-hint" id="exportHint">CY-20260704.json</p>
+    </div>
+  </div>
+</div>
+
+<!-- Import File Input (hidden) -->
+<input type="file" id="importFile" accept=".json" style="display:none">
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── DOM refs ──
+  var inputBox    = document.getElementById('inputBox');
+  var addBtn      = document.getElementById('addBtn');
+  var listSection = document.getElementById('listSection');
+  var countText   = document.getElementById('countText');
+
+  var searchBtn      = document.getElementById('searchBtn');
+  var searchBar      = document.getElementById('searchBar');
+  var searchInput    = document.getElementById('searchInput');
+  var closeSearchBtn = document.getElementById('closeSearchBtn');
+
+  var settingsBtn      = document.getElementById('settingsBtn');
+  var settingsOverlay  = document.getElementById('settingsOverlay');
+  var backdrop         = document.getElementById('backdrop');
+  var closeSettingsBtn = document.getElementById('closeSettingsBtn');
+  var sortOptions      = document.getElementById('sortOptions');
+
+  var exportBtn  = document.getElementById('exportBtn');
+  var importBtn  = document.getElementById('importBtn');
+  var importFile = document.getElementById('importFile');
+  var exportHint = document.getElementById('exportHint');
+  var toast      = document.getElementById('toast');
+
+  // ── State ──
+  var data       = [];
+  var sortMode   = 'time';
+  var editingId  = null;
+  var searchOpen = false;
+  var initDone   = false;
+
+  // ── Key ──
+  var STORAGE_KEY = 'cy_dict_data';
+  var PREF_KEY    = 'cy_dict_sort';
+
+  // ── Data ──
+  function loadData() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      data = raw ? JSON.parse(raw) : [];
+    } catch (e) { data = []; }
+  }
+  function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+  function loadPref() {
+    sortMode = localStorage.getItem(PREF_KEY) || 'time';
+  }
+  function savePref() { localStorage.setItem(PREF_KEY, sortMode); }
+
+  // ── Sort ──
+  function getSorted() {
+    var arr = data.slice();
+    if (sortMode === 'time') {
+      arr.sort(function (a, b) { return b.id - a.id; });
+    } else if (sortMode === 'letter') {
+      arr.sort(function (a, b) { return a.word.localeCompare(b.word, 'zh-CN'); });
+    } else if (sortMode === 'random') {
+      for (var i = arr.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+      }
+    }
+    return arr;
+  }
+
+  // ── Filter ──
+  function getFiltered() {
+    var sorted = getSorted();
+    var kw = searchInput.value.trim();
+    if (!kw) return sorted;
+    return sorted.filter(function (item) {
+      return item.word.indexOf(kw) !== -1;
+    });
+  }
+
+  // ── Find ──
+  function findById(id) {
+    for (var i = 0; i < data.length; i++) {
+      if (data[i].id === id) return data[i];
+    }
+    return null;
+  }
+
+  function findIndexById(id) {
+    for (var i = 0; i < data.length; i++) {
+      if (data[i].id === id) return i;
+    }
+    return -1;
+  }
+
+  // ── Toast ──
+  var toastTimer = 0;
+  function showToast(msg) {
+    clearTimeout(toastTimer);
+    toast.textContent = msg;
+    toast.classList.add('show');
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2000);
+  }
+
+  // ── Update Export Hint ──
+  function updateExportHint() {
+    var d = new Date();
+    var ds = d.getFullYear() +
+      ('0' + (d.getMonth() + 1)).slice(-2) +
+      ('0' + d.getDate()).slice(-2);
+    exportHint.textContent = 'CY-' + ds + '.json';
+  }
+
+  // ── Build empty / no-result HTML ──
+  function emptyStateHTML() {
+    return '<div class="empty-state"><p>还没有记录任何成语</p><p>在上方输入框添加第一个成语吧</p></div>';
+  }
+  function noResultHTML() {
+    return '<div class="no-result">没有匹配的成语</div>';
+  }
+
+  // ── Build card HTML ──
+  function cardViewHTML(item) {
+    return '<div class="card-header">' +
+      '<span class="card-word">' + esc(item.word) + '</span>' +
+      '<div class="card-actions-top">' +
+        '<button class="icon-btn btn-edit" aria-label="编辑" data-id="' + item.id + '">' +
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+        '</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="card-meaning">' + esc(item.meaning) + '</div>' +
+    '<div class="card-footer">' +
+      '<button class="btn-delete" data-id="' + item.id + '">删除</button>' +
+    '</div>';
+  }
+
+  function cardEditHTML(item) {
+    return '<div class="card-header">' +
+      '<input class="card-edit-word" data-id="' + item.id + '" value="' + escAttr(item.word) + '" placeholder="成语">' +
+    '</div>' +
+    '<textarea class="card-edit-meaning" data-id="' + item.id + '" placeholder="意思">' + esc(item.meaning) + '</textarea>' +
+    '<div class="card-footer">' +
+      '<button class="btn-cancel" data-id="' + item.id + '">取消</button>' +
+      '<button class="btn-save" data-id="' + item.id + '">保存</button>' +
+    '</div>';
+  }
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
+  }
+  function escAttr(s) {
+    return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // ── Render ──
+  function render() {
+    var filtered = getFiltered();
+    var html = '';
+
+    if (filtered.length === 0) {
+      html = data.length === 0 ? emptyStateHTML() : noResultHTML();
+    } else {
+      for (var i = 0; i < filtered.length; i++) {
+        var item = filtered[i];
+        var editing = (editingId === item.id);
+        html += '<div class="card' + (editing ? ' editing' : '') + '" data-id="' + item.id + '">';
+        if (editing) {
+          html += cardEditHTML(item);
+        } else {
+          html += cardViewHTML(item);
+        }
+        html += '</div>';
+      }
+    }
+
+    listSection.innerHTML = html;
+    updateFooter();
+  }
+
+  function updateFooter() {
+    var kw = searchInput.value.trim();
+    var total = data.length;
+    var visible = kw ? getFiltered().length : total;
+    if (kw) {
+      countText.textContent = '共 ' + total + ' 个词条，匹配 ' + visible + ' 个';
+    } else {
+      countText.textContent = '共 ' + total + ' 个词条';
+    }
+  }
+
+  // ── Add ──
+  function addIdiom() {
+    var raw = inputBox.value.trim();
+    if (!raw) {
+      inputBox.classList.add('shake');
+      setTimeout(function () { inputBox.classList.remove('shake'); }, 400);
+      return;
+    }
+
+    var idx = raw.indexOf(' ');
+    if (idx === -1 || idx === 0 || idx === raw.length - 1) {
+      inputBox.classList.add('shake');
+      setTimeout(function () { inputBox.classList.remove('shake'); }, 400);
+      showToast('格式错误，请使用"成语 意思"的格式');
+      return;
+    }
+
+    var word = raw.substring(0, idx).trim();
+    var meaning = raw.substring(idx + 1).trim();
+
+    if (!word || !meaning) {
+      inputBox.classList.add('shake');
+      setTimeout(function () { inputBox.classList.remove('shake'); }, 400);
+      return;
+    }
+
+    data.push({ id: Date.now(), word: word, meaning: meaning });
+    saveData();
+    inputBox.value = '';
+    inputBox.focus();
+    editingId = null;
+    render();
+    showToast('已添加「' + word + '」');
+  }
+
+  // ── Delete ──
+  function deleteIdiom(id) {
+    var item = findById(id);
+    if (!item) return;
+    if (!confirm('确认删除「' + item.word + '」？')) return;
+    var idx = findIndexById(id);
+    if (idx !== -1) {
+      data.splice(idx, 1);
+      saveData();
+      if (editingId === id) editingId = null;
+      render();
+      showToast('已删除');
+    }
+  }
+
+  // ── Edit ──
+  function enterEdit(id) {
+    var sw = searchInput.value.trim();
+    if (sw) {
+      searchInput.value = '';
+    }
+    editingId = id;
+    render();
+    var card = listSection.querySelector('.card.editing');
+    if (card) {
+      var w = card.querySelector('.card-edit-word');
+      if (w) setTimeout(function () { w.focus(); w.select(); }, 100);
+    }
+  }
+
+  function saveEdit(id) {
+    var card = listSection.querySelector('.card.editing[data-id="' + id + '"]');
+    if (!card) return;
+    var wordInput = card.querySelector('.card-edit-word');
+    var meaningInput = card.querySelector('.card-edit-meaning');
+    if (!wordInput || !meaningInput) return;
+
+    var newWord = wordInput.value.trim();
+    var newMeaning = meaningInput.value.trim();
+    if (!newWord || !newMeaning) {
+      showToast('成语和意思不能为空');
+      return;
+    }
+
+    var idx = findIndexById(id);
+    if (idx === -1) return;
+    data[idx].word = newWord;
+    data[idx].meaning = newMeaning;
+    saveData();
+    editingId = null;
+    render();
+    showToast('已更新「' + newWord + '」');
+  }
+
+  function cancelEdit() {
+    editingId = null;
+    render();
+  }
+
+  // ── Export ──
+  function exportData() {
+    var sorted = getSorted();
+    var json = JSON.stringify(sorted, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var d = new Date();
+    var ds = d.getFullYear() +
+      ('0' + (d.getMonth() + 1)).slice(-2) +
+      ('0' + d.getDate()).slice(-2);
+    a.href = url;
+    a.download = 'CY-' + ds + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('导出成功');
+    closeSettings();
+  }
+
+  // ── Import ──
+  function importData() {
+    importFile.click();
+  }
+
+  function handleImportFile(e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      try {
+        var arr = JSON.parse(ev.target.result);
+        if (!Array.isArray(arr)) throw new Error('not array');
+        var added = 0;
+        var existingWords = {};
+        for (var i = 0; i < data.length; i++) {
+          existingWords[data[i].word] = true;
+        }
+        for (var j = 0; j < arr.length; j++) {
+          var obj = arr[j];
+          if (!obj.word || !obj.meaning) continue;
+          if (existingWords[obj.word]) continue;
+          existingWords[obj.word] = true;
+          data.push({ id: Date.now() + j, word: obj.word, meaning: obj.meaning });
+          added++;
+        }
+        saveData();
+        render();
+        showToast('导入成功，新增 ' + added + ' 个词条');
+        closeSettings();
+      } catch (err) {
+        showToast('文件格式错误，请选择有效的 JSON 文件');
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+    importFile.value = '';
+  }
+
+  // ── Search ──
+  function openSearch() {
+    searchBar.classList.add('active');
+    searchOpen = true;
+    setTimeout(function () { searchInput.focus(); }, 100);
+  }
+  function closeSearch() {
+    searchBar.classList.remove('active');
+    searchOpen = false;
+    searchInput.value = '';
+    render();
+  }
+  function onSearchInput() {
+    editingId = null;
+    render();
+  }
+
+  // ── Settings ──
+  function openSettings() {
+    settingsOverlay.classList.add('active');
+    updateExportHint();
+    var radios = sortOptions.querySelectorAll('input[name="sort"]');
+    for (var i = 0; i < radios.length; i++) {
+      radios[i].checked = (radios[i].value === sortMode);
+    }
+  }
+  function closeSettings() {
+    settingsOverlay.classList.remove('active');
+  }
+  function onSortChange(e) {
+    var radio = e.target;
+    if (radio.name !== 'sort') return;
+    sortMode = radio.value;
+    savePref();
+    render();
+  }
+
+  // ── Events ──
+  addBtn.addEventListener('click', addIdiom);
+  inputBox.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); addIdiom(); }
+  });
+
+  searchBtn.addEventListener('click', function () {
+    if (searchOpen) { closeSearch(); } else { openSearch(); }
+  });
+  closeSearchBtn.addEventListener('click', function () { closeSearch(); });
+  searchInput.addEventListener('input', onSearchInput);
+  searchInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' || (e.key === 'Enter')) closeSearch();
+  });
+
+  settingsBtn.addEventListener('click', function () { openSettings(); });
+  backdrop.addEventListener('click', function () { closeSettings(); });
+  closeSettingsBtn.addEventListener('click', function () { closeSettings(); });
+  sortOptions.addEventListener('change', function (e) { onSortChange(e); });
+
+  exportBtn.addEventListener('click', exportData);
+  importBtn.addEventListener('click', importData);
+  importFile.addEventListener('change', handleImportFile);
+
+  // Event delegation for card actions
+  listSection.addEventListener('click', function (e) {
+    var target = e.target;
+
+    // Delete button
+    if (target.classList.contains('btn-delete')) {
+      var delId = parseInt(target.getAttribute('data-id'), 10);
+      if (delId) deleteIdiom(delId);
+      return;
+    }
+
+    // Edit button (icon)
+    if (target.closest('.btn-edit')) {
+      var editBtn = target.closest('.btn-edit');
+      var editId = parseInt(editBtn.getAttribute('data-id'), 10);
+      if (editId) {
+        if (editingId === editId) return; // already editing
+        if (editingId !== null) cancelEdit(); // cancel previous
+        enterEdit(editId);
+      }
+      return;
+    }
+
+    // Save button
+    if (target.classList.contains('btn-save')) {
+      var saveId = parseInt(target.getAttribute('data-id'), 10);
+      if (saveId) saveEdit(saveId);
+      return;
+    }
+
+    // Cancel button
+    if (target.classList.contains('btn-cancel')) {
+      cancelEdit();
+      return;
+    }
+  });
+
+  // Close search / settings on Escape
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      if (settingsOverlay.classList.contains('active')) { closeSettings(); }
+      else if (searchOpen) { closeSearch(); }
+    }
+  });
+
+  // Prevent body scroll when settings is open (touchmove on backdrop)
+  backdrop.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
+
+  // ── Init ──
+  loadData();
+  loadPref();
+  updateExportHint();
+  render();
+  initDone = true;
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考公助手</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f9f3f3;
+            color: #333;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px;
+            background-color: #fff;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid #eee;
+            height: 45px;
+        }
+        
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .skin-switcher {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .skin-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 1px solid #ddd;
+        }
+        
+        .skin-icon:hover {
+            transform: scale(1.2);
+        }
+        
+        .skin-red {
+            background-color: #b01f24;
+        }
+        
+        .skin-blue {
+            background-color: #87CEEB;
+        }
+        
+        .skin-green {
+            background-color: #21A6B1;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .section {
+            background-color: #fff;
+            border-radius: 4px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eee;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .menu-list {
+            list-style: none;
+        }
+        
+        .menu-item {
+            padding: 8px 0;
+            cursor: pointer;
+            transition: padding-left 0.2s;
+        }
+        
+        .menu-item:hover {
+            padding-left: 5px;
+        }
+        
+        .subtitle {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+        
+        .submission {
+            margin-top: 25px;
+            background-color: #fff;
+            border-radius: 4px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eee;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .submission:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            color: #b01f24;
+        }
+        
+        .skin-red-active .section-title,
+        .skin-red-active .menu-item,
+        .skin-red-active .submission h2 {
+            color: #b01f24;
+        }
+        
+        .skin-blue-active .section-title,
+        .skin-blue-active .menu-item,
+        .skin-blue-active .submission h2 {
+            color: #87CEEB;
+        }
+        
+        .skin-green-active .section-title,
+        .skin-green-active .menu-item,
+        .skin-green-active .submission h2 {
+            color: #21A6B1;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 8px 15px;
+            }
+            
+            .logo {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body class="skin-red-active">
+    <div class="header">
+        <div class="logo">考公助手</div>
+        <div class="user-actions">
+            <div class="skin-switcher">
+                <div class="skin-icon skin-red" data-skin="red"></div>
+                <div class="skin-icon skin-blue" data-skin="blue"></div>
+                <div class="skin-icon skin-green" data-skin="green"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="section" data-page="chengyu" data-url="成语词典.html">
+                <h2 class="section-title">成语积累</h2>
+                <ul class="menu-list">
+                    <li class="menu-item">
+                        成语释义、出处、例句
+                        <div class="subtitle">收录常用成语，助力言语理解</div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="section" data-page="xingce" data-url="行测记录.html">
+                <h2 class="section-title">行测记录</h2>
+                <ul class="menu-list">
+                    <li class="menu-item">
+                        言语、判断、资料、数量、常识
+                        <div class="subtitle">行测各模块练习记录与错题本</div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="section" data-page="judgment">
+                <h2 class="section-title">判断推理</h2>
+                <ul class="menu-list">
+                    <li class="menu-item">
+                        图形推理、逻辑判断等
+                        <div class="subtitle">判断推理专项练习与技巧</div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="section" data-page="data-analysis">
+                <h2 class="section-title">资料分析</h2>
+                <ul class="menu-list">
+                    <li class="menu-item">
+                        速算技巧、真题练习
+                        <div class="subtitle">资料分析公式速查与实战</div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="section" data-page="math">
+                <h2 class="section-title">数量关系</h2>
+                <ul class="menu-list">
+                    <li class="menu-item">
+                        数学运算、数字推理
+                        <div class="subtitle">数量关系题型归纳与解题方法</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="submission" data-page="shenlun">
+            <h2 class="section-title">申论素材</h2>
+            <p>金句、范文、热点积累，为申论写作打好基础。</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const skinIcons = document.querySelectorAll('.skin-icon');
+            
+            skinIcons.forEach(icon => {
+                icon.addEventListener('click', function() {
+                    const skin = this.getAttribute('data-skin');
+                    setSkin(skin);
+                });
+            });
+            
+            function setSkin(skin) {
+                document.body.classList.remove('skin-red-active', 'skin-blue-active', 'skin-green-active');
+                document.body.classList.add(`skin-${skin}-active`);
+            }
+            
+            const sections = document.querySelectorAll('.section, .submission');
+            sections.forEach(section => {
+                section.addEventListener('click', function() {
+                    const url = this.getAttribute('data-url');
+                    
+                    if (url) {
+                        window.location.href = url;
+                    } else {
+                        alert(`"${this.querySelector('.section-title').textContent}"页面正在建设中，敬请期待！`);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
