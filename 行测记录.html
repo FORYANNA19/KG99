@@ -203,6 +203,7 @@ h1 { font-size: 22px; font-weight: 600; margin-bottom: 20px; }
   .tab-btn { padding: 10px 4px; font-size: 13px; }
 
   .section-row {
+    position: relative;
     flex-direction: row;
     align-items: center;
     gap: 6px 8px;
@@ -212,20 +213,27 @@ h1 { font-size: 22px; font-weight: 600; margin-bottom: 20px; }
     width: auto;
     flex-shrink: 0;
     font-size: 14px;
+    margin-right: 6px;
     padding-bottom: 0;
   }
   .section-info {
     width: auto;
     flex: 1;
     min-width: 0;
+    margin-right: 72px;
     font-size: 11px;
     padding-bottom: 0;
   }
   .section-input {
-    width: 52px;
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px;
     flex-shrink: 0;
     font-size: 16px;
     padding: 8px 4px;
+    margin: 0;
   }
   .section-result {
     flex-basis: 100%;
@@ -333,7 +341,7 @@ function buildInputForm() {
     html += '  <div class="section-name">' + sec.name + '</div>';
     html += '  <div class="section-info">总题' + sec.total + ' / ' + sec.scorePer + '分/题</div>';
     html += '  <input type="number" class="section-input" id="wrong-' + i + '"';
-    html += '    inputmode="numeric" pattern="[0-9]*" min="0" max="' + sec.total + '" placeholder="错题数"';
+    html += '    inputmode="numeric" pattern="[0-9]*" min="0" max="' + sec.total + '"';
     html += '    oninput="onInputChange(' + i + ')" onkeydown="if(event.key===\'Enter\'){onInputChange(' + i + ')}">';
     html += '  <div class="section-result" id="result-' + i + '"></div>';
     html += '</div>';
@@ -350,7 +358,8 @@ function onInputChange(i) {
   input.classList.remove('error');
 
   if (rawVal === '') {
-    document.getElementById('result-' + i).innerHTML = '<span style="color:#a0aec0;">--</span>';
+    document.getElementById('result-' + i).innerHTML =
+      '<span style="color:#a0aec0;">正确:-- / 正确率:-- / 得分:--</span>';
   } else {
     var wrong = parseInt(rawVal, 10);
     if (isNaN(wrong) || wrong < 0 || wrong > sec.total) {
@@ -593,6 +602,7 @@ function deleteRecord(id) {
 
 // ========== 初始化 ==========
 buildInputForm();
+sections.forEach(function(_, i) { onInputChange(i); });
 updateSummary();
 </script>
 </body>

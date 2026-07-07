@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>听课记录</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", sans-serif;
+  background: #f5f6f8;
+  color: #2c3e50;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== Header ===== */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  height: 50px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.header-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1e293b;
+}
+.btn-save {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 20px;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .2s, transform .1s;
+  touch-action: manipulation;
+  min-height: 36px;
+}
+.btn-save:active { transform: scale(.96); background: #2563eb; }
+
+/* ===== Container ===== */
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 12px 10px 24px;
+}
+
+/* ===== Section Card ===== */
+.section-card {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  min-height: 48px;
+  gap: 10px;
+  transition: background .15s;
+}
+.section-header:active { background: #f8fafc; }
+
+.section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.section-accent {
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.section-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+}
+.section-stats-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #94a3b8;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.section-stats-mini .stat-dot { width: 3px; height: 3px; border-radius: 50%; background: #cbd5e1; }
+.section-arrow {
+  font-size: 12px;
+  color: #94a3b8;
+  transition: transform .25s;
+  flex-shrink: 0;
+}
+.section-card.collapsed .section-arrow { transform: rotate(-90deg); }
+.section-card.collapsed .section-body { display: none; }
+
+/* ===== Section Body ===== */
+.section-body { border-top: 1px solid #f1f5f9; }
+
+.subcat-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+.subcat-header::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+/* ===== Video Row ===== */
+.video-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 10px;
+  cursor: pointer;
+  transition: background .12s;
+  min-height: 44px;
+  border-bottom: 1px solid #fafafa;
+}
+.video-row:last-child { border-bottom: none; }
+.video-row:active { background: #f8fafc; }
+.video-row.completed { background: #f0fdf4; }
+
+.video-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all .2s;
+  font-size: 11px;
+  color: transparent;
+}
+.video-row.completed .video-check {
+  background: #38a169;
+  border-color: #38a169;
+  color: #fff;
+}
+.video-name {
+  flex: 1;
+  font-size: 14px;
+  color: #334155;
+  min-width: 0;
+}
+.video-row.completed .video-name { color: #38a169; }
+.video-duration {
+  font-size: 12px;
+  color: #94a3b8;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== Overall Stats Panel ===== */
+.overall-panel {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 18px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.overall-panel-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 14px;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.progress-label {
+  font-size: 13px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+.progress-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #3b82f6;
+}
+.progress-bar-outer {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e2e8f0;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.progress-bar-inner {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #3b82f6, #38a169);
+  transition: width .3s ease;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.stat-item {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 12px;
+}
+.stat-item-label {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+.stat-item-value {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1e293b;
+}
+.stat-item-value.accent { color: #3b82f6; }
+
+.today-added {
+  background: #eff6ff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #3b82f6;
+  margin-bottom: 14px;
+  display: none;
+}
+.today-added.show { display: block; }
+
+/* ===== Daily Log ===== */
+.log-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+.log-list { list-style: none; }
+.log-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #fafafa;
+  gap: 10px;
+}
+.log-item:last-child { border-bottom: none; }
+.log-date {
+  font-size: 12px;
+  color: #94a3b8;
+  flex-shrink: 0;
+  width: 42px;
+}
+.log-count {
+  color: #38a169;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.log-time {
+  color: #3b82f6;
+  font-weight: 500;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.log-empty {
+  text-align: center;
+  padding: 16px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #1e293b;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  z-index: 200;
+  opacity: 0;
+  transition: transform .3s, opacity .3s;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-title">听课记录</span>
+  <button class="btn-save" onclick="saveProgress()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    保存
+  </button>
+</div>
+
+<div class="container" id="app"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== DATA ====================
+var SECTIONS = [
+  {
+    name: '政治理论',
+    color: '#3b82f6',
+    categories: [
+      { name: '习思想', durations: ['2:07:19','2:29:28','3:08:09','2:52:21','3:25:15','3:21:45'] },
+      { name: '马原',   durations: ['2:53:17','3:19:12','3:12:17','4:30:55'] },
+      { name: '党史',   durations: ['3:27:25','2:35:22'] },
+      { name: '毛中特', durations: ['2:44:45','1:51:10'] }
+    ]
+  },
+  {
+    name: '常识判断',
+    color: '#6366f1',
+    categories: [
+      { name: '历史知识', durations: ['2:39:51','2:40:20'] },
+      { name: '文学知识', durations: ['2:55:27','2:57:03','2:46:44','3:37:47'] },
+      { name: '科技常识', durations: ['2:47:23','3:09:50','3:23:45','2:40:14','3:39:30'] },
+      { name: '经济常识', durations: ['2:14:11','2:43:54'] },
+      { name: '地理常识', durations: ['2:56:42','3:30:11'] },
+      { name: '法律常识', durations: ['0:19:52','3:27:58','1:45:45','3:42:43','3:25:00','2:33:27','1:32:56'] }
+    ]
+  },
+  {
+    name: '言语理解',
+    color: '#10b981',
+    categories: [
+      { name: '言语理解', durations: ['2.45.19','2.59.12','3.04.09','2.31.20','1.59.29','2.11.50','2.31.02','2.47.43','2.31.45','1.50.09'] }
+    ]
+  },
+  {
+    name: '图形推理',
+    color: '#f59e0b',
+    categories: [
+      { name: '图形推理', durations: ['3:04:58','2:49:28','2:35:15','3:11:15','3:03:20','3:07:46','3:07:09','2:35:19','2:13:40'] }
+    ]
+  },
+  {
+    name: '判断推理',
+    color: '#ef4444',
+    categories: [
+      { name: '判断推理', durations: ['2:30:00','2:59:36','2:51:02','3:25:38','2:26:34','2:54:51','3:25:44','2:53:51','3:11:49','3:25:20','3:34:03','2:58:57','2:58:47','3:22:03','3:06:02','2:57:37'] }
+    ]
+  },
+  {
+    name: '数量关系',
+    color: '#06b6d4',
+    categories: [
+      { name: '王炎', durations: ['0:7:42','1:14:42','1:31:44','1:45:15','1:35:53','1:41:33','1:32:48','1:42:49','1:16:11','1:30:17','1:37:18','1:08:07','0:56:18','1:09:39','1:12:26','1:00:28','0:49:55','0:33:00','0:38:15','0:37:26','0:30:54','0:48:27'] },
+      { name: '毛娃', durations: ['0:23:00','0:39:37','1:38:39','0:29:54','1:34:56','1:50:30','1:30:03','2:07:34','1:17:36','0:46:17','0:33:33','1:17:20','0:45:40','0:19:24'] }
+    ]
+  },
+  {
+    name: '资料分析',
+    color: '#8b5cf6',
+    categories: [
+      { name: '高照资料', durations: ['2:11:10','2:46:56','3.12.16','2.42.40','4.05.15','3.12.30','2.54.16','2.39.30','2.42.00','4.20.15','3.50.18','3.00.40','3.00.30','3.35.20','3.56.50','4.39.32'] },
+      { name: '毛娃资料', durations: ['0:26:51','0:22:48','0:42:52','0:23:53','0:25:56','0:9:41','0:33:08','0:22:56','0:26:56','0:35:22','0:07:06'] }
+    ]
+  }
+];
+
+// ==================== FLAT VIDEO LIST ====================
+function buildAllVideos() {
+  var result = [];
+  SECTIONS.forEach(function(section, si) {
+    section.categories.forEach(function(cat, ci) {
+      cat.durations.forEach(function(dur, vi) {
+        result.push({
+          id: si + '-' + ci + '-' + vi,
+          sectionIndex: si,
+          categoryIndex: ci,
+          sectionName: section.name,
+          sectionColor: section.color,
+          categoryName: cat.name,
+          name: cat.name + (vi + 1),
+          duration: dur,
+          durationSeconds: parseDuration(dur)
+        });
+      });
+    });
+  });
+  return result;
+}
+
+var ALL_VIDEOS = buildAllVideos();
+var TOTAL_COUNT = ALL_VIDEOS.length;
+var TOTAL_SECONDS = ALL_VIDEOS.reduce(function(sum, v) { return sum + v.durationSeconds; }, 0);
+
+// ==================== HELPERS ====================
+function parseDuration(str) {
+  str = str.replace(/\./g, ':');
+  var parts = str.split(':');
+  if (parts.length === 3) {
+    return parseInt(parts[0], 10) * 3600 + parseInt(parts[1], 10) * 60 + parseInt(parts[2], 10);
+  }
+  return 0;
+}
+
+function formatDurationDisplay(str) {
+  return str.replace(/\./g, ':');
+}
+
+function formatSeconds(sec) {
+  if (sec <= 0) return '0分';
+  var h = Math.floor(sec / 3600);
+  var m = Math.floor((sec % 3600) / 60);
+  if (h > 0) return h + '小时' + m + '分';
+  return m + '分';
+}
+
+function formatSecondsFull(sec) {
+  if (sec <= 0) return '0分0秒';
+  var h = Math.floor(sec / 3600);
+  var m = Math.floor((sec % 3600) / 60);
+  var s = sec % 60;
+  var parts = [];
+  if (h > 0) parts.push(h + '小时');
+  if (m > 0) parts.push(m + '分');
+  if (s > 0 && h === 0) parts.push(s + '秒');
+  return parts.join('') || '0秒';
+}
+
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
+// ==================== STATE ====================
+var completedSet = new Set();
+var dailyLog = [];
+var lastSaveSnapshot = [];
+
+function loadState() {
+  try {
+    var raw = localStorage.getItem('courseData');
+    if (raw) completedSet = new Set(JSON.parse(raw));
+  } catch(e) { completedSet = new Set(); }
+  try {
+    var raw2 = localStorage.getItem('dailyLog');
+    if (raw2) dailyLog = JSON.parse(raw2);
+  } catch(e) { dailyLog = []; }
+  try {
+    var raw3 = localStorage.getItem('lastSaveSnapshot');
+    if (raw3) lastSaveSnapshot = JSON.parse(raw3);
+  } catch(e) { lastSaveSnapshot = []; }
+}
+
+function saveCompletedSet() {
+  localStorage.setItem('courseData', JSON.stringify([].slice.call(completedSet)));
+}
+
+function saveDailyLog() {
+  localStorage.setItem('dailyLog', JSON.stringify(dailyLog));
+}
+
+function saveSnapshot() {
+  lastSaveSnapshot = [].slice.call(completedSet);
+  localStorage.setItem('lastSaveSnapshot', JSON.stringify(lastSaveSnapshot));
+}
+
+// ==================== RENDER ====================
+function renderAll() {
+  var app = document.getElementById('app');
+  var html = '';
+
+  // Section cards
+  SECTIONS.forEach(function(section, si) {
+    var sectionStats = calcSectionStats(si);
+    html += '<div class="section-card collapsed" data-section="' + si + '">';
+    html += '<div class="section-header" onclick="toggleSection(this)">';
+    html += '<div class="section-header-left">';
+    html += '<span class="section-accent" style="background:' + section.color + '"></span>';
+    html += '<span class="section-name">' + section.name + '</span>';
+    html += '</div>';
+    html += '<div class="section-stats-mini">';
+    html += '<span>进度:' + sectionStats.pct + '%</span>';
+    html += '<span class="stat-dot"></span>';
+    html += '<span>剩' + formatSeconds(sectionStats.remainingSec) + '</span>';
+    html += '<span class="stat-dot"></span>';
+    html += '<span>剩' + sectionStats.remainingCount + '个</span>';
+    html += '</div>';
+    html += '<span class="section-arrow">&#9660;</span>';
+    html += '</div>';
+
+    html += '<div class="section-body">';
+    section.categories.forEach(function(cat, ci) {
+      html += '<div class="subcat-header">' + cat.name + '</div>';
+      cat.durations.forEach(function(dur, vi) {
+        var vid = si + '-' + ci + '-' + vi;
+        var completed = completedSet.has(vid);
+        html += '<div class="video-row' + (completed ? ' completed' : '') + '" data-vid="' + vid + '" onclick="toggleVideo(this)">';
+        html += '<span class="video-check">&#10003;</span>';
+        html += '<span class="video-name">' + cat.name + (vi + 1) + '</span>';
+        html += '<span class="video-duration">' + formatDurationDisplay(dur) + '</span>';
+        html += '</div>';
+      });
+    });
+    html += '</div>';
+    html += '</div>';
+  });
+
+  // Overall stats panel
+  var allComplete = completedSet.size;
+  var allRemaining = TOTAL_COUNT - allComplete;
+  var completedSec = 0;
+  ALL_VIDEOS.forEach(function(v) {
+    if (completedSet.has(v.id)) completedSec += v.durationSeconds;
+  });
+  var remainingSec = TOTAL_SECONDS - completedSec;
+  var pct = TOTAL_COUNT > 0 ? Math.round(allComplete / TOTAL_COUNT * 100) : 0;
+  var remainingDays = Math.ceil(remainingSec / 28800);
+
+  html += '<div class="overall-panel">';
+  html += '<div class="overall-panel-title">总计统计</div>';
+
+  html += '<div class="progress-row"><span class="progress-label">进度:</span><span class="progress-value">' + pct + '%</span><span style="font-size:12px;color:#94a3b8;margin-left:auto;">(' + allComplete + '/' + TOTAL_COUNT + ')</span></div>';
+  html += '<div class="progress-bar-outer"><div class="progress-bar-inner" style="width:' + pct + '%"></div></div>';
+
+  html += '<div class="stats-grid">';
+  html += '<div class="stat-item"><div class="stat-item-label">剩余时长</div><div class="stat-item-value">' + formatSeconds(remainingSec) + '</div></div>';
+  html += '<div class="stat-item"><div class="stat-item-value">' + allRemaining + '<span style="font-size:12px;color:#94a3b8;font-weight:400;"> 个</span></div><div class="stat-item-label">剩余课程</div></div>';
+  html += '<div class="stat-item"><div class="stat-item-value accent">' + remainingDays + '<span style="font-size:12px;color:#94a3b8;font-weight:400;"> 天</span></div><div class="stat-item-label">还要听（h/8）</div></div>';
+  html += '<div class="stat-item"><div class="stat-item-label">今日计划</div><div class="stat-item-value">8<span style="font-size:12px;color:#94a3b8;font-weight:400;"> 节/天</span></div></div>';
+  html += '</div>';
+
+  // Today added
+  var todayAddedText = getTodayAddedText();
+  html += '<div class="today-added' + (todayAddedText ? ' show' : '') + '">' + (todayAddedText || '') + '</div>';
+
+  // Daily log
+  html += '<div class="log-title">历史记录</div>';
+  if (dailyLog.length === 0) {
+    html += '<div class="log-empty">暂无保存记录</div>';
+  } else {
+    html += '<ul class="log-list">';
+    for (var i = dailyLog.length - 1; i >= 0; i--) {
+      var entry = dailyLog[i];
+      var dateShort = entry.date.slice(5);
+      html += '<li class="log-item">';
+      html += '<span class="log-date">' + dateShort + '</span>';
+      html += '<span class="log-count">+' + entry.count + '节</span>';
+      html += '<span class="log-time">' + formatSeconds(entry.seconds) + '</span>';
+      html += '</li>';
+    }
+    html += '</ul>';
+  }
+
+  html += '</div>'; // overall-panel
+
+  app.innerHTML = html;
+}
+
+function calcSectionStats(si) {
+  var section = SECTIONS[si];
+  var total = 0, done = 0, sec = 0, doneSec = 0;
+  section.categories.forEach(function(cat, ci) {
+    cat.durations.forEach(function(dur, vi) {
+      total++;
+      var s = parseDuration(dur);
+      sec += s;
+      if (completedSet.has(si + '-' + ci + '-' + vi)) {
+        done++;
+        doneSec += s;
+      }
+    });
+  });
+  return {
+    pct: total > 0 ? Math.round(done / total * 100) : 0,
+    remainingCount: total - done,
+    remainingSec: sec - doneSec
+  };
+}
+
+function getTodayAddedText() {
+  var today = todayStr();
+  var entry = null;
+  for (var i = 0; i < dailyLog.length; i++) {
+    if (dailyLog[i].date === today) { entry = dailyLog[i]; break; }
+  }
+  if (!entry || entry.count === 0) return '';
+  return '今日新增 ' + entry.count + ' 节课，累计时长 ' + formatSecondsFull(entry.seconds);
+}
+
+// ==================== INTERACTIONS ====================
+function toggleVideo(row) {
+  var vid = row.getAttribute('data-vid');
+  if (completedSet.has(vid)) {
+    completedSet.delete(vid);
+    row.classList.remove('completed');
+  } else {
+    completedSet.add(vid);
+    row.classList.add('completed');
+  }
+  saveCompletedSet();
+  updateAllStats();
+}
+
+function toggleSection(header) {
+  var card = header.parentElement;
+  card.classList.toggle('collapsed');
+}
+
+function updateAllStats() {
+  // Update section card headers
+  SECTIONS.forEach(function(section, si) {
+    var card = document.querySelector('.section-card[data-section="' + si + '"]');
+    if (!card) return;
+    var stats = calcSectionStats(si);
+    var mini = card.querySelector('.section-stats-mini');
+    if (mini) {
+      mini.innerHTML = '<span>进度:' + stats.pct + '%</span>' +
+        '<span class="stat-dot"></span>' +
+        '<span>剩' + formatSeconds(stats.remainingSec) + '</span>' +
+        '<span class="stat-dot"></span>' +
+        '<span>剩' + stats.remainingCount + '个</span>';
+    }
+  });
+
+  // Update overall panel
+  var allComplete = completedSet.size;
+  var allRemaining = TOTAL_COUNT - allComplete;
+  var completedSec = 0;
+  ALL_VIDEOS.forEach(function(v) {
+    if (completedSet.has(v.id)) completedSec += v.durationSeconds;
+  });
+  var remainingSec = TOTAL_SECONDS - completedSec;
+  var pct = TOTAL_COUNT > 0 ? Math.round(allComplete / TOTAL_COUNT * 100) : 0;
+  var remainingDays = Math.ceil(remainingSec / 28800);
+
+  var panel = document.querySelector('.overall-panel');
+  if (!panel) return;
+
+  var pv = panel.querySelector('.progress-value');
+  if (pv) {
+    pv.textContent = pct + '%';
+    pv.nextElementSibling.textContent = '(' + allComplete + '/' + TOTAL_COUNT + ')';
+  }
+  var pb = panel.querySelector('.progress-bar-inner');
+  if (pb) pb.style.width = pct + '%';
+
+  var statValues = panel.querySelectorAll('.stat-item-value');
+  if (statValues.length >= 4) {
+    statValues[0].innerHTML = formatSeconds(remainingSec);
+    statValues[1].innerHTML = allRemaining + '<span style="font-size:12px;color:#94a3b8;font-weight:400;"> 个</span>';
+    statValues[2].innerHTML = remainingDays + '<span style="font-size:12px;color:#94a3b8;font-weight:400;"> 天</span>';
+  }
+
+  var ta = panel.querySelector('.today-added');
+  var todayText = getTodayAddedText();
+  if (ta) {
+    ta.textContent = todayText || '';
+    if (todayText) ta.classList.add('show'); else ta.classList.remove('show');
+  }
+}
+
+// ==================== SAVE ====================
+function saveProgress() {
+  var prevSnapshot = new Set(lastSaveSnapshot);
+  var addedIds = [];
+  completedSet.forEach(function(id) {
+    if (!prevSnapshot.has(id)) addedIds.push(id);
+  });
+
+  var addedSeconds = 0;
+  addedIds.forEach(function(id) {
+    var v = ALL_VIDEOS.find(function(v) { return v.id === id; });
+    if (v) addedSeconds += v.durationSeconds;
+  });
+
+  var today = todayStr();
+  var existingEntry = null;
+  for (var i = 0; i < dailyLog.length; i++) {
+    if (dailyLog[i].date === today) { existingEntry = dailyLog[i]; break; }
+  }
+
+  if (addedIds.length === 0 && existingEntry) {
+    showToast('今日已保存，暂无新增课程');
+    return;
+  }
+
+  if (existingEntry) {
+    existingEntry.count += addedIds.length;
+    existingEntry.seconds += addedSeconds;
+  } else {
+    dailyLog.push({ date: today, count: addedIds.length, seconds: addedSeconds });
+  }
+
+  saveDailyLog();
+  saveSnapshot();
+  showToast('今日新增 ' + addedIds.length + ' 节课，累计时长 ' + formatSecondsFull(addedSeconds));
+  renderAll();
+}
+
+function showToast(msg) {
+  var toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(function() {
+    toast.classList.remove('show');
+  }, 2500);
+}
+
+// ==================== INIT ====================
+loadState();
+renderAll();
+</script>
+</body>
+</html>
