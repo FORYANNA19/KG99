@@ -525,7 +525,7 @@ function loadState() {
 }
 
 function saveCompletedSet() {
-  localStorage.setItem('courseData', JSON.stringify([].slice.call(completedSet)));
+  localStorage.setItem('courseData', JSON.stringify(Array.from(completedSet)));
 }
 
 function saveDailyLog() {
@@ -533,13 +533,13 @@ function saveDailyLog() {
 }
 
 function saveSnapshot() {
-  lastSaveSnapshot = [].slice.call(completedSet);
+  lastSaveSnapshot = Array.from(completedSet);
   localStorage.setItem('lastSaveSnapshot', JSON.stringify(lastSaveSnapshot));
 }
 
 function saveCommittedSet() {
   committedSet = new Set(completedSet);
-  localStorage.setItem('committedVideos', JSON.stringify([].slice.call(committedSet)));
+  localStorage.setItem('committedVideos', JSON.stringify(Array.from(committedSet)));
 }
 
 // ==================== RENDER ====================
