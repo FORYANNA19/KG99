@@ -182,6 +182,19 @@ body {
   min-width: 0;
 }
 .video-row.completed .video-name { color: #38a169; }
+.video-row.locked { cursor: default; }
+.video-row.locked .video-check {
+  background: transparent;
+  border-color: #d1d5db;
+  color: transparent;
+}
+.video-row.locked .video-check::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
 .video-duration {
   font-size: 12px;
   color: #94a3b8;
@@ -484,6 +497,7 @@ function todayStr() {
 
 // ==================== STATE ====================
 var completedSet = new Set();
+var committedSet = new Set();
 var dailyLog = [];
 var lastSaveSnapshot = [];
 
@@ -492,6 +506,14 @@ function loadState() {
     var raw = localStorage.getItem('courseData');
     if (raw) completedSet = new Set(JSON.parse(raw));
   } catch(e) { completedSet = new Set(); }
+  try {
+    var raw4 = localStorage.getItem('committedVideos');
+    if (raw4) {
+      var arr = JSON.parse(raw4);
+      committedSet = new Set(arr);
+      arr.forEach(function(id) { completedSet.add(id); });
+    }
+  } catch(e) { committedSet = new Set(); }
   try {
     var raw2 = localStorage.getItem('dailyLog');
     if (raw2) dailyLog = JSON.parse(raw2);
@@ -513,6 +535,11 @@ function saveDailyLog() {
 function saveSnapshot() {
   lastSaveSnapshot = [].slice.call(completedSet);
   localStorage.setItem('lastSaveSnapshot', JSON.stringify(lastSaveSnapshot));
+}
+
+function saveCommittedSet() {
+  committedSet = new Set(completedSet);
+  localStorage.setItem('committedVideos', JSON.stringify([].slice.call(committedSet)));
 }
 
 // ==================== RENDER ====================
@@ -545,7 +572,9 @@ function renderAll() {
       cat.durations.forEach(function(dur, vi) {
         var vid = si + '-' + ci + '-' + vi;
         var completed = completedSet.has(vid);
-        html += '<div class="video-row' + (completed ? ' completed' : '') + '" data-vid="' + vid + '" onclick="toggleVideo(this)">';
+        var locked = committedSet.has(vid);
+        var rowClass = 'video-row' + (locked ? ' completed locked' : (completed ? ' completed' : ''));
+        html += '<div class="' + rowClass + '" data-vid="' + vid + '" onclick="toggleVideo(this)">';
         html += '<span class="video-check">&#10003;</span>';
         html += '<span class="video-name">' + cat.name + (vi + 1) + '</span>';
         html += '<span class="video-duration">' + formatDurationDisplay(dur) + '</span>';
@@ -641,6 +670,7 @@ function getTodayAddedText() {
 // ==================== INTERACTIONS ====================
 function toggleVideo(row) {
   var vid = row.getAttribute('data-vid');
+  if (committedSet.has(vid)) return;
   if (completedSet.has(vid)) {
     completedSet.delete(vid);
     row.classList.remove('completed');
@@ -744,6 +774,7 @@ function saveProgress() {
 
   saveDailyLog();
   saveSnapshot();
+  saveCommittedSet();
   showToast('今日新增 ' + addedIds.length + ' 节课，累计时长 ' + formatSecondsFull(addedSeconds));
   renderAll();
 }
