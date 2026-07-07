@@ -51,6 +51,15 @@ body {
   min-height: 36px;
 }
 .btn-save:active { transform: scale(.96); background: #2563eb; }
+.btn-clear-log {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+}
+.btn-clear-log:active { color: #94a3b8; }
 
 /* ===== Container ===== */
 .container {
@@ -183,18 +192,6 @@ body {
 }
 .video-row.completed .video-name { color: #38a169; }
 .video-row.locked { cursor: default; }
-.video-row.locked .video-check {
-  background: transparent;
-  border-color: #d1d5db;
-  color: transparent;
-}
-.video-row.locked .video-check::after {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #94a3b8;
-}
 .video-duration {
   font-size: 12px;
   color: #94a3b8;
@@ -614,7 +611,10 @@ function renderAll() {
   html += '<div class="today-added' + (todayAddedText ? ' show' : '') + '">' + (todayAddedText || '') + '</div>';
 
   // Daily log
-  html += '<div class="log-title">历史记录</div>';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #f1f5f9;margin-bottom:4px;">';
+  html += '<span style="font-size:14px;font-weight:600;color:#475569;">历史记录</span>';
+  html += '<button class="btn-clear-log" onclick="clearDailyLog()">清除记录</button>';
+  html += '</div>';
   if (dailyLog.length === 0) {
     html += '<div class="log-empty">暂无保存记录</div>';
   } else {
@@ -787,6 +787,14 @@ function showToast(msg) {
   toast._timer = setTimeout(function() {
     toast.classList.remove('show');
   }, 2500);
+}
+
+function clearDailyLog() {
+  if (confirm('确定清除所有历史记录？')) {
+    dailyLog = [];
+    saveDailyLog();
+    renderAll();
+  }
 }
 
 // ==================== INIT ====================
